@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+  core:
+    container_name: core
+    image: ghcr.io/bitclout/core-obf:latest
+    volumes:
+    - db:/db
+    ports:
+    - 17001:17001
+    - 17000:17000
+    expose:
+    - "17001"
+    - "17000"
+  frontend:
+    container_name: frontend 
+    image: jaysondemarchi/bitclout-frontend 
+    ports:
+    - 8080:8080
+    environment:
+      - BASE_DOMAIN=bitclout.me
+      - API_BASE_DOMAIN=api.bitclout.me
+    expose:
+    - "8080"
+  nginx: 
+    container_name: nginx
+    image: jaysondemarchi/bitclout-nginx
+    environment:
+      - BASE_DOMAIN=bitclout.me
+      - API_BASE_DOMAIN=api.bitclout.me
+    ports:
+      - 80:80
+      - 443:443
+volumes:
+  db:
