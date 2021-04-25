@@ -1,0 +1,29 @@
+http {
+    server {
+        server_name ${BASE_DOMAIN};
+
+        location / {
+            proxy_pass http://frontend:8080;
+        }
+
+        listen 80;
+        # listen 443 ssl;
+        # ssl_certificate /etc/letsencrypt/live/server2.your.domain/fullchain.pem;
+        # ssl_certificate_key /etc/letsencrypt/live/server2.your.domain/privkey.pem;
+        # include /etc/letsencrypt/options-ssl-nginx.conf;
+    }
+
+    server {
+        server_name ${API_BASE_DOMAIN};
+
+        location / {
+            proxy_pass http://core:17001;
+        }
+
+        listen 80;
+        # listen 443 ssl;
+        # ssl_certificate /etc/letsencrypt/live/server2.your.domain/fullchain.pem;
+        # ssl_certificate_key /etc/letsencrypt/live/server2.your.domain/privkey.pem;
+        # include /etc/letsencrypt/options-ssl-nginx.conf;
+    }
+}
