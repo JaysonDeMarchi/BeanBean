@@ -1,0 +1,107 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+	"appName": {
+      "type": "string",
+      "metadata": {
+        "description": "This is used for the azure web url, therefore it must be unique. To avoid issues, try only using alphanumerics/dashes/underscores."
+      },
+      "defaultValue": "bitcloutpulse-app"
+    },
+    "webUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "The canonical url to access the frontend."
+      },
+      "defaultValue": "bitcloutpulse-node.com"
+    }
+  },
+  "variables": {
+    "apiAppName": "[concat(parameters('appName'), '-api')]",
+    "apiUrl": "[concat('api.', parameters('webUrl'))]",
+    "webappName": "[concat(parameters('appName'), '-web')]",
+    "appServiceTemplateLink": "[uri(deployment().properties.templateLink.uri, 'services/app-service.json')]",
+    "appServicePlanTemplateLink": "[uri(deployment().properties.templateLink.uri, 'services/app-service-plan.json')]",
+    "appServicePlanName": "[concat(parameters('appName'), '-plan')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "bitcloutAppServicePlan",
+      "properties": {
+        "mode": "Incremental",
+        "parameters": {
+          "appServicePlanName": {
+            "value": "[variables('appServicePlanName')]"
+          }
+        },
+        "templateLink": {
+          "uri":"[variables('appServicePlanTemplateLink')]",
+          "contentVersion":"1.0.0.0"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "bitclout-api",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'bitcloutAppServicePlan')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "parameters": {
+          "appName": {
+            "value": "[variables('apiAppName')]"
+          },
+          "corsDomain": {
+            "value": "[parameters('webUrl')]"
+          },
+          "linuxFxVersion": {
+            "value": "COMPOSE|dmVyc2lvbjogIjMuNyIKc2VydmljZXM6CiAgY29yZToKICAgIGltYWdlOiBnaGNyLmlvL2JpdGNsb3V0LXB1bHNlL2JpdGNsb3V0LWNvcmU6bGF0ZXN0CiAgICB2b2x1bWVzOgogICAgICAtIGRiOi9kYgogICAgcG9ydHM6CiAgICAgIC0gMTcwMDE6MTcwMDEKICAgICAgLSAxNzAwMDoxNzAwMAoKICBuZ2lueC1hcGk6IAogICAgaW1hZ2U6IGdoY3IuaW8vYml0Y2xvdXQtcHVsc2UvYml0Y2xvdXQtbmdpbng6bGF0ZXN0CiAgICBlbnZpcm9ubWVudDoKICAgICAgLSBTRVJWRVJfTkFNRT0ke0FQSV9CQVNFX0RPTUFJTn0KICAgICAgLSBQUk9YWV9ET01BSU49Y29yZQogICAgICAtIFBST1hZX1BPUlQ9MTcwMDEKICAgIHBvcnRzOgogICAgICAtIDgwOjgwCiAgICAgIC0gNDQzOjQ0MwoKdm9sdW1lczoKICBkYjo="
+          },
+          "serverFarmId": {
+            "value": "[variables('appServicePlanName')]"
+          }
+        },
+        "templateLink": {
+          "uri":"[variables('appServiceTemplateLink')]",
+          "contentVersion":"1.0.0.0"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2020-10-01",
+      "name": "bitclout-web",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'bitcloutAppServicePlan')]"
+      ],
+      "properties": {
+        "mode": "Incremental",
+        "parameters": {
+          "appName": {
+            "value": "[variables('webAppName')]"
+          },
+          "corsDomain": {
+            "value": "[variables('apiUrl')]"
+          },
+          "linuxFxVersion": {
+            "value": "COMPOSE|dmVyc2lvbjogIjMuNyIKc2VydmljZXM6CiAgZnJvbnRlbmQ6CiAgICBpbWFnZTogZ2hjci5pby9iaXRjbG91dC1wdWxzZS9iaXRjbG91dC1mcm9udGVuZDpsYXRlc3QKICAgIGVudmlyb25tZW50OgogICAgICAtIEJBU0VfRE9NQUlOPSR7QkFTRV9ET01BSU59CiAgICAgIC0gQVBJX0JBU0VfRE9NQUlOPSR7QVBJX0JBU0VfRE9NQUlOfQogICAgcG9ydHM6CiAgICAgIC0gODA4MDo4MDgwCgogIG5naW54LXdlYjogCiAgICBpbWFnZTogZ2hjci5pby9iaXRjbG91dC1wdWxzZS9iaXRjbG91dC1uZ2lueDpsYXRlc3QKICAgIGVudmlyb25tZW50OgogICAgICAtIFNFUlZFUl9OQU1FPSR7QkFTRV9ET01BSU59CiAgICAgIC0gUFJPWFlfRE9NQUlOPWZyb250ZW5kCiAgICAgIC0gUFJPWFlfUE9SVD04MDgwCiAgICBwb3J0czoKICAgICAgLSA4MDo4MAogICAgICAtIDQ0Mzo0NDM="
+          },
+          "serverFarmId": {
+            "value": "[variables('appServicePlanName')]"
+          }
+        },
+        "templateLink": {
+          "uri":"[variables('appServiceTemplateLink')]",
+          "contentVersion":"1.0.0.0"
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}
